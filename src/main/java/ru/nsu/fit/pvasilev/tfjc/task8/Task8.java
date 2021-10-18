@@ -9,7 +9,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class Task8 {
     static int threadCount;
     static Thread mainThread;
-    private static volatile Long maxIterations = 0L;
+    private static final Object maxIterationsLock = new Object();
+    private static volatile long maxIterations = 0L;
     public static void main(String[] args) {
         mainThread = Thread.currentThread();
 
@@ -86,11 +87,15 @@ public class Task8 {
                 result += (iterationCount % 2 == 0 ? 1f : -1f) / (2 * iterationCount + 1);
                 iterationCount += threadCount;
                 //BAD!
-                synchronized (maxIterations) {
+                synchronized (maxIterationsLock) {
                     if (iterationCount > maxIterations) {
                         maxIterations = iterationCount;
                     }
                 }
+            }
+            while(iterationCount < maxIterations) {
+                result += (iterationCount % 2 == 0 ? 1f : -1f) / (2 * iterationCount + 1);
+                iterationCount += threadCount;
             }
             queue.add(result);
         }
